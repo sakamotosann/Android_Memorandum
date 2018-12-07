@@ -27,17 +27,6 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
     String year, month, day, hour, minute;
     DatePickerDialog dpd;
     TimePickerDialog tpd;
-    private Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-                case 1:
-                    SetDate();
-                    break;
-            }
-            return false;
-        }
-    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,4 +131,16 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
 
         }
     }
+
+    private Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what) {
+                case 1:
+                    SetDate();
+                    break;
+            }
+            return false;
+        }
+    });
 }
