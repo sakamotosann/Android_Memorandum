@@ -20,5 +20,9 @@
         <activity android:name=".AppendActivity">
 
         </activity>
+
+        <activity android:name=".ViewActivity">
+
+        </activity>
     </application>
 </manifest>

@@ -4,6 +4,7 @@
 
     <!--activity_main-->
     <string name="append">添加</string>
+    <string name="keyword">请输入查询内容</string>
 
     <!--activity_append-->
     <string name="save">保存</string>
@@ -11,5 +12,10 @@
     <string name="cancel">取消</string>
     <string name="title">标题不超过20字</string>
     <string name="content">内容不超过100字</string>
+
+    <!--activity_view-->
+    <string name="alter">修改</string>
+    <string name="delete">删除</string>
+    <string name="back">返回</string>
 
 </resources>

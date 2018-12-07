@@ -1,8 +1,12 @@
 package com.pby.memo;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,9 +28,11 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
     TextView alert;
     EditText title, content;
     Calendar now;
-    String year, month, day, hour, minute;
+    String year, month, day, hour, minute, date;
     DatePickerDialog dpd;
     TimePickerDialog tpd;
+    DBHelper dbhelper;
+    SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,18 +43,30 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
         save = findViewById(R.id.save);
         time = findViewById(R.id.time);
         cancel = findViewById(R.id.cancel);
+
         //TextView
         alert = findViewById(R.id.alert);
+
         //EditText
         title = findViewById(R.id.title);
         content = findViewById(R.id.content);
 
+        //Listener
         save.setOnClickListener(this);
         time.setOnClickListener(this);
         cancel.setOnClickListener(this);
 
+        //Database Helper
+        dbhelper = new DBHelper(AppendActivity.this, "memo", null, 1);
+
+        //SQLite
+        db = dbhelper.getWritableDatabase();
+        db = dbhelper.getReadableDatabase();
+
+        //Thread
         new TimeThread().start();
 
+        //Soft Input
         showInput(title);
         showInput(content);
 
@@ -65,7 +83,28 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.save:
-                //TODO
+                AlertDialog.Builder adb = new AlertDialog.Builder(AppendActivity.this);
+                adb.setTitle("保存");
+                adb.setMessage("是否保存");
+                adb.setPositiveButton("保存",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                ContentValues cv = new ContentValues();
+                                cv.put("title", title.getText().toString());
+                                cv.put("content", content.getText().toString());
+                                cv.put("date", date);
+                                db.insert("record", null, cv);
+                                AppendActivity.this.finish();
+                            }
+                        });
+                adb.setNegativeButton("取消",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                            }
+                        });
+                adb.show();
                 break;
             case R.id.time:
                 tpd = new TimePickerDialog(AppendActivity.this, new TimePickerDialog.OnTimeSetListener() {
@@ -97,7 +136,7 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void SetDate() {
-        String date = year + '-' +
+        date = year + '-' +
                 check(month) + month + '-' +
                 check(day) + day + ' ' +
                 check(hour) + hour + ':' +
@@ -113,7 +152,7 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
         imm.showSoftInput(et, 0);
     }
 
-    public class TimeThread extends Thread {
+    private class TimeThread extends Thread {
         @Override
         public void run() {
             super.run();
