@@ -29,13 +29,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     DBHelper dbhelper;
     SQLiteDatabase db;
     List<ContentValues> dataList;
+
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:
                     dataList = new ArrayList<>();
-                    Cursor cursor = db.query("record", new String[]{"title", "date", "content"}, null, null, null, null, null);
+                    Cursor cursor = db.query("record", new String[]{"title", "date", "content"}, null, null, null, null, "date");
                     while (cursor.moveToNext()) {
                         String title = cursor.getString(cursor.getColumnIndex("title"));
                         String date = cursor.getString(cursor.getColumnIndex("date"));
@@ -55,6 +56,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     });
 
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.append:
+                Intent intent = new Intent(MainActivity.this, AppendActivity.class);
+                startActivity(intent);
+                break;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,11 +72,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Button
         append = findViewById(R.id.append);
+
         //ListView
         list = findViewById(R.id.list);
 
         //Listener
         append.setOnClickListener(this);
+        list.setOnItemClickListener(this);
 
         //Database Helper
         dbhelper = new DBHelper(MainActivity.this, "memo", null, 1);
@@ -77,25 +89,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Thread
         new TimeThread().start();
-    }
-
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.append:
-                Intent intent = new Intent(MainActivity.this, AppendActivity.class);
-                startActivity(intent);
-                break;
-        }
-        //test
-//        for (ContentValues i : dataList)
-//            System.out.println(i);
-    }
-
-    public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-        ContentValues cv = dataList.get(position);
-        Intent intent = new Intent();
-        intent.setClass(MainActivity.this, ViewActivity.class);
-        startActivity(intent);
     }
 
     public class RecordAdapter extends ArrayAdapter<ContentValues> {
@@ -130,6 +123,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        ContentValues cv = dataList.get(position);
+        Intent intent = new Intent(MainActivity.this, ViewActivity.class);
+        intent.putExtra("date", cv.getAsString("date"));
+        intent.putExtra("title", cv.getAsString("title"));
+        intent.putExtra("content", cv.getAsString("content"));
+        intent.putExtra("position", position);
+        startActivity(intent);
+    }
+
     private class TimeThread extends Thread {
         @Override
         public void run() {
@@ -145,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     e.printStackTrace();
                 }
             } while (true);
-
         }
     }
 }
