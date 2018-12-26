@@ -118,11 +118,7 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
                                     new AlertDialog.Builder(AppendActivity.this)
                                             .setTitle("保存失败")
                                             .setMessage("内容不能为空")
-                                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialogInterface, int i) {
-                                                    AppendActivity.this.finish();
-                                                }
-                                            })
+                                            .setPositiveButton("确定", null)
                                             .show();
                                 }
                             }

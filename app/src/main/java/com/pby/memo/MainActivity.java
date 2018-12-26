@@ -10,12 +10,15 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -25,6 +28,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
     Button append;
+    EditText search;
     ListView list;
     DBHelper dbhelper;
     SQLiteDatabase db;
@@ -34,21 +38,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:
-                    dataList = new ArrayList<>();
-                    Cursor cursor = db.query("record", new String[]{"title", "date", "content"}, null, null, null, null, "date");
-                    while (cursor.moveToNext()) {
-                        String title = cursor.getString(cursor.getColumnIndex("title"));
-                        String date = cursor.getString(cursor.getColumnIndex("date"));
-                        String content = cursor.getString(cursor.getColumnIndex("content"));
-                        ContentValues cv = new ContentValues();
-                        cv.put("title", title);
-                        cv.put("date", date);
-                        cv.put("content", content);
-                        dataList.add(cv);
-                    }
-                    cursor.close();
-                    RecordAdapter adapter = new RecordAdapter(MainActivity.this, R.layout.record, dataList);
-                    list.setAdapter(adapter);
+                    ShowList();
                     break;
             }
             return false;
@@ -74,12 +64,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Button
         append = findViewById(R.id.append);
 
+        //EditText
+        search = findViewById(R.id.search);
+
         //ListView
         list = findViewById(R.id.list);
-
-        //Listener
-        append.setOnClickListener(this);
-        list.setOnItemClickListener(this);
 
         //Database Helper
         dbhelper = new DBHelper(MainActivity.this, "memo", null, 1);
@@ -87,6 +76,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //SQLite
         db = dbhelper.getWritableDatabase();
         db = dbhelper.getReadableDatabase();
+
+        //Listener
+        append.setOnClickListener(this);
+        list.setOnItemClickListener(this);
+        search.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                ShowList();
+            }
+
+            public void afterTextChanged(Editable s) {
+            }
+        });
 
         //Thread
         new TimeThread().start();
@@ -149,5 +153,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             } while (true);
         }
+    }
+
+    private void ShowList() {
+        dataList = new ArrayList<>();
+        Cursor cursor;
+        if (search.getText().toString().length() != 0) {
+            cursor = db.rawQuery("SELECT * FROM record WHERE title like '%" + search.getText().toString() + "%' or content like '%" + search.getText().toString() + "%' ORDER BY date", null);
+        } else {
+            cursor = db.rawQuery("SELECT * FROM record ORDER BY date", null);
+        }
+        while (cursor.moveToNext()) {
+            String title = cursor.getString(cursor.getColumnIndex("title"));
+            String date = cursor.getString(cursor.getColumnIndex("date"));
+            String content = cursor.getString(cursor.getColumnIndex("content"));
+            ContentValues cv = new ContentValues();
+            cv.put("title", title);
+            cv.put("date", date);
+            cv.put("content", content);
+            dataList.add(cv);
+        }
+        cursor.close();
+        RecordAdapter adapter = new RecordAdapter(MainActivity.this, R.layout.record, dataList);
+        list.setAdapter(adapter);
     }
 }
