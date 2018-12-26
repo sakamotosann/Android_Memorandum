@@ -6,6 +6,7 @@ import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,13 +29,14 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
     TextView alert;
     EditText title, content;
     Calendar now;
-    String year, month, day, hour, minute, date;
+    String year, month, day, hour, minute, date, default_date, default_title, default_content;
     DatePickerDialog dpd;
     TimePickerDialog tpd;
+    boolean flag;
     DBHelper dbhelper;
     SQLiteDatabase db;
+    Intent intent;
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_append);
@@ -63,6 +65,9 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
         db = dbhelper.getWritableDatabase();
         db = dbhelper.getReadableDatabase();
 
+        //boolean
+        flag = false;
+
         //Thread
         new TimeThread().start();
 
@@ -70,14 +75,26 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
         showInput(title);
         showInput(content);
 
+        //Intent
+        intent = getIntent();
+        default_date = intent.getStringExtra("date");
+        default_title = intent.getStringExtra("title");
+        default_content = intent.getStringExtra("content");
+
+        //Calendar
         now = Calendar.getInstance();
         now.setTimeZone(TimeZone.getTimeZone("GMT+8:00"));
+        date = default_date;
         hour = String.valueOf(now.get(Calendar.HOUR_OF_DAY));
         minute = String.valueOf(now.get(Calendar.MINUTE));
         year = String.valueOf(now.get(Calendar.YEAR));
         month = String.valueOf(now.get(Calendar.MONTH) + 1);
         day = String.valueOf(now.get(Calendar.DATE));
         SetDate();
+
+        alert.setText(default_date);
+        title.setText(default_title);
+        content.setText(default_content);
     }
 
     public void onClick(View view) {
@@ -88,27 +105,37 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
                 adb.setMessage("是否保存");
                 adb.setPositiveButton("保存",
                         new DialogInterface.OnClickListener() {
-                            @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 ContentValues cv = new ContentValues();
                                 cv.put("title", title.getText().toString());
                                 cv.put("content", content.getText().toString());
                                 cv.put("date", date);
-                                db.insert("record", null, cv);
-                                AppendActivity.this.finish();
+                                if (title.getText().toString().length() > 0 && content.getText().toString().length() > 0 && date.length() > 0) {
+                                    db.delete("record", "date = ? and title = ? and content= ? ", new String[]{default_date, default_title, default_content});
+                                    db.insert("record", null, cv);
+                                    AppendActivity.this.finish();
+                                } else {
+                                    new AlertDialog.Builder(AppendActivity.this)
+                                            .setTitle("保存失败")
+                                            .setMessage("内容不能为空")
+                                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    AppendActivity.this.finish();
+                                                }
+                                            })
+                                            .show();
+                                }
                             }
                         });
-                adb.setNegativeButton("取消",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                            }
-                        });
+                adb.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                    }
+                });
                 adb.show();
                 break;
             case R.id.time:
+                flag = true;
                 tpd = new TimePickerDialog(AppendActivity.this, new TimePickerDialog.OnTimeSetListener() {
-                    @Override
                     public void onTimeSet(TimePicker tp, int h, int m) {
                         hour = String.valueOf(h);
                         minute = String.valueOf(m);
@@ -116,7 +143,6 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
                 }, now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE), true);
                 tpd.show();
                 dpd = new DatePickerDialog(AppendActivity.this, new DatePickerDialog.OnDateSetListener() {
-                    @Override
                     public void onDateSet(DatePicker datePicker, int y, int m, int d) {
                         year = String.valueOf(y);
                         month = String.valueOf(m + 1);
@@ -136,12 +162,14 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void SetDate() {
-        date = year + '-' +
-                check(month) + month + '-' +
-                check(day) + day + ' ' +
-                check(hour) + hour + ':' +
-                check(minute) + minute;
-        alert.setText(date);
+        if (flag) {
+            date = year + '-' +
+                    check(month) + month + '-' +
+                    check(day) + day + ' ' +
+                    check(hour) + hour + ':' +
+                    check(minute) + minute;
+            alert.setText(date);
+        }
     }
 
     private void showInput(final EditText et) {
@@ -153,7 +181,6 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private class TimeThread extends Thread {
-        @Override
         public void run() {
             super.run();
             do {
@@ -172,7 +199,6 @@ public class AppendActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private Handler handler = new Handler(new Handler.Callback() {
-        @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:

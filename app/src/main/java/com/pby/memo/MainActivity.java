@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     List<ContentValues> dataList;
 
     private Handler handler = new Handler(new Handler.Callback() {
-        @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:
@@ -60,12 +59,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
             case R.id.append:
                 Intent intent = new Intent(MainActivity.this, AppendActivity.class);
+                intent.putExtra("date", "");
+                intent.putExtra("title", "");
+                intent.putExtra("content", "");
                 startActivity(intent);
                 break;
         }
     }
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -124,8 +125,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        ContentValues cv = dataList.get(position);
         Intent intent = new Intent(MainActivity.this, ViewActivity.class);
+        ContentValues cv = dataList.get(position);
         intent.putExtra("date", cv.getAsString("date"));
         intent.putExtra("title", cv.getAsString("title"));
         intent.putExtra("content", cv.getAsString("content"));
@@ -134,7 +135,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private class TimeThread extends Thread {
-        @Override
         public void run() {
             super.run();
             do {

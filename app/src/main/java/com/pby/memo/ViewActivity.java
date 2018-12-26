@@ -45,8 +45,8 @@ public class ViewActivity extends AppCompatActivity implements View.OnClickListe
         db = dbhelper.getWritableDatabase();
         db = dbhelper.getReadableDatabase();
 
+        //Intent
         intent = getIntent();
-
         string_date = intent.getStringExtra("date");
         string_title = intent.getStringExtra("title");
         string_content = intent.getStringExtra("content");
@@ -59,6 +59,12 @@ public class ViewActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.alter:
+                Intent intent = new Intent(ViewActivity.this, AppendActivity.class);
+                intent.putExtra("date", string_date);
+                intent.putExtra("title", string_title);
+                intent.putExtra("content", string_content);
+                startActivity(intent);
+                this.finish();
                 break;
             case R.id.delete:
                 AlertDialog.Builder adb = new AlertDialog.Builder(ViewActivity.this);
@@ -66,16 +72,13 @@ public class ViewActivity extends AppCompatActivity implements View.OnClickListe
                 adb.setMessage("是否删除");
                 adb.setPositiveButton("删除",
                         new DialogInterface.OnClickListener() {
-                            @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                db.delete("record", "date = ? and title = ? and content= ? ",
-                                        new String[]{string_date, string_title, string_content});
+                                db.delete("record", "date = ? and title = ? and content= ? ", new String[]{string_date, string_title, string_content});
                                 ViewActivity.this.finish();
                             }
                         });
                 adb.setNegativeButton("取消",
                         new DialogInterface.OnClickListener() {
-                            @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                             }
                         });
